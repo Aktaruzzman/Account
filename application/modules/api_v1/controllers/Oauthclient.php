@@ -22,8 +22,8 @@ class Oauthclient extends REST_Controller
             $results['entity'] = $this->Oauthclients->get($id, TRUE, $deleted);
         } else {
             $results = ['deleted' => $deleted, 'limit' => $limit, 'offset' => $offset];
-            $results['list'] = $this->Oauthclients->get_by(NULL, FALSE, $deleted, $limit, $offset);
-            $results['total']  = $this->Oauthclients->count_rows(NULL, $deleted);
+            $results['list'] = $this->Oauthclients->get_by(['client_id <>' => 'Hilibazaar'], FALSE, $deleted, $limit, $offset);
+            $results['total']  = $this->Oauthclients->count_rows(['client_id <>' => 'Hilibazaar'], $deleted);
         }
         return $this->response($results);
     }

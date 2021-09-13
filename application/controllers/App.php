@@ -10,11 +10,11 @@ class App extends MX_Controller
     public function english()
     {
         $this->Cookie_Model->set_lang('en');
-        redirect(!empty($this->session->tempdata('temp_url')) ? $this->session->tempdata('temp_url') : $this->session->userdata('lastAccessUrl'));
+        redirect(!empty($this->session->tempdata('temp_url')) ? $this->session->tempdata('temp_url') : get_last_page());
     }
     public function bengali()
     {
         $this->Cookie_Model->set_lang('bn');
-        redirect(!empty($this->session->tempdata('temp_url')) ? $this->session->tempdata('temp_url') : $this->session->userdata('lastAccessUrl'));
+        redirect(!empty($this->session->tempdata('temp_url')) ? $this->session->tempdata('temp_url') : get_last_page());
     }
 }

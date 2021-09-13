@@ -34,7 +34,7 @@ class Shop extends REST_Controller
         }
         foreach ($results['list'] as $index => $value) {
             $results['list'][$index]->api = $this->Shopclients->get($value->client_id, TRUE)->app_id;
-            if (!empty($id))  $results['entity'] =  $results['list'][$index];
+            if (!empty($id) && $id == $value->id)  $results['entity'] =  $results['list'][$index];
         }
         $results['clients'] = $this->Shopclients->get(null, false, false, ['id', 'name']);
         return $this->response($results);

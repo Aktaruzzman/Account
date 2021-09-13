@@ -1,4 +1,4 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 |--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ $config['title_separator'] = ' | ';
 |
 */
 
-$config['layout'] = 'layout';
+$config['layout'] = 'public';
 
 /*
 |--------------------------------------------------------------------------
@@ -85,5 +85,5 @@ $config['theme'] = '';
 */
 
 $config['theme_locations'] = array(
-	APPPATH.'themes/'
+	APPPATH . 'themes/'
 );

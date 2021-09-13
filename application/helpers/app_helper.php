@@ -1,40 +1,16 @@
 <?php
-if (!function_exists('debugPrint')) {
-
-    function debugPrint($object, $title = "", $isMarkup = false)
-    {
-        echo '<font color="red">Debug <<< START';
-        if (!empty($title)) {
-            echo "$title: ";
-        }
-        if ($isMarkup == false) {
-            echo "<pre>";
-            print_r($object);
-            echo "</pre>";
-        } else {
-            echo htmlspecialchars($object);
-        }
-        echo 'END >>></font>';
-    }
-}
-if (!function_exists('checkfile')) {
-    function checkfile($path = '', $file = '')
-    {
-        return file_exists($path . $file) ? TRUE : FALSE;
-    }
-}
 if (!function_exists('lang_option')) {
     function lang_option()
     {
         $CI = &get_instance();
         $CI->load->model('Cookie_Model');
-        return  $CI->Cookie_Model->get_lang();
+        return $CI->Cookie_Model->get_lang();
     }
 }
 if (!function_exists('currency')) {
     function currency($amount)
     {
-        return lang_option() === "bn" ? config_item('currency_bn') . ' ' . to_bengali(number_format($amount, 2)) : config_item('currency_en') . ' ' . number_format($amount, 2);
+        return lang_option() === "bn" ? to_bengali(number_format($amount, 2)) . config_item('currency_bn') : config_item('currency_en') . ' ' . number_format($amount, 2);
     }
 }
 if (!function_exists('amount')) {
@@ -49,84 +25,66 @@ if (!function_exists('number')) {
         return lang_option() === "bn" ? to_bengali($number) : $number;
     }
 }
+if (!function_exists('rounding')) {
+    function rounding($val)
+    {
+        return round($val, config_item('precesion'), PHP_ROUND_HALF_UP);
+    }
+}
 if (!function_exists('to_bengali')) {
 
-    function to_bengali($english)
+    function to_bengali($bn_number, $lang = null)
     {
-        $english = (string) $english;
-        $bengali = '';
-        $length = strlen($english);
-        for ($i = 0; $i < $length; $i++) {
-            switch ($english[$i]) {
-                case "0":
-                    $bengali .= '&#2534;';
-                    break;
-                case "1":
-                    $bengali .= '&#2535;';
-                    break;
-                case "2":
-                    $bengali .= '&#2536;';
-                    break;
-                case "3":
-                    $bengali .= '&#2537;';
-                    break;
-                case "4":
-                    $bengali .= '&#2538;';
-                    break;
-                case "5":
-                    $bengali .= '&#2539;';
-                    break;
-                case "6":
-                    $bengali .= '&#2540;';
-                    break;
-                case "7":
-                    $bengali .= '&#2541;';
-                    break;
-                case "8":
-                    $bengali .= '&#2542;';
-                    break;
-                case "9":
-                    $bengali .= '&#2543;';
-                    break;
-                default:
-                    $bengali .= $english[$i];
-                    break;
-            }
-        }
-        return $bengali;
+        $lang = $lang ? $lang : lang_option();
+        if ($lang === "bn") {
+            $bn_digits = array("১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯", "০");
+            $en_digits = array("1", "2", "3", "4", "5", "6", "7", "8", "9", "০");
+            $output = str_replace($en_digits, $bn_digits, $bn_number);
+            return $output;
+        } else return $bn_number;
     }
 }
 if (!function_exists('is_english')) {
     function is_english($str)
     {
-        if (strlen($str) != strlen(utf8_decode($str))) {
-            return false;
-        } else {
-            return true;
-        }
+        return strlen($str) != strlen(utf8_decode($str)) ? false : true;
     }
 }
-
+if (!function_exists('verify_date')) {
+    function verify_date($format = "m/d/Y", $date)
+    {
+        return (DateTime::createFromFormat($format, $date) !== false);
+    }
+}
 if (!function_exists('add_time')) {
 
-    function add_time($pattern = '1H1M1S')
+    function add_time($pattern = '1H1M1S', $format = false)
     {
         $date = new DateTime();
         $date->add(new DateInterval('PT' . $pattern));
-        $tenDigitTime = strtotime($date->format('Y-m-d H:i:s'));
-        return $tenDigitTime * 1000;
+        if ($format) {
+            return $date->format('Y-m-d H:i:s');
+        } else {
+            $tenDigitTime = strtotime($date->format('Y-m-d H:i:s'));
+            return $tenDigitTime * 1000;
+        }
     }
 }
 if (!function_exists('sub_time')) {
 
-    function sub_time($pattern = '1H1M1S')
+    function sub_time($pattern = '1H1M1S', $format = false)
     {
         $date = new DateTime();
         $date->sub(new DateInterval('PT' . $pattern));
-        $tenDigitTime = strtotime($date->format('Y-m-d H:i:s'));
-        return $tenDigitTime * 1000;
+        if ($format)
+            return $date->format('Y-m-d H:i:s');
+        else {
+            $tenDigitTime = strtotime($date->format('Y-m-d H:i:s'));
+            return $tenDigitTime * 1000;
+        }
     }
 }
+
 
 if (!function_exists('get_domain')) {
 
@@ -136,49 +94,63 @@ if (!function_exists('get_domain')) {
         return preg_replace("/^[\w]{2,6}:\/\/([\w\d\.\-]+).*$/", "$1", $CI->config->slash_item('base_url'));
     }
 }
-if (!function_exists('sendSMS')) {
-    function sendSMS($content)
-    {
-        $ch = curl_init('http://esms.mimsms.com/smsapi');
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        return $output;
-    }
-}
 if (!function_exists('sms')) {
     function sms($phone, $message)
     {
-        $content = 'api_key=' . rawurlencode('C20061625e936d00a4c2c0.96874058') . '&type=' . rawurlencode('text') . '&contacts=' . rawurlencode($phone) . '&senderid=' . rawurlencode('8809601000100') . '&msg=' . rawurlencode($message);
-        return  sendSMS($content);
+        if (config_item('sms_service') === "yes") {
+            //API URL (GET & POST) : https://esms.mimsms.com/smsapi?api_key=(APIKEY)&type=text&contacts=(NUMBER)&senderid=(Approved Sender ID)&msg=(Message Content)
+            $content = 'api_key=' . rawurlencode('C20061625e936d00a4c2c0.96874058') . '&type=' . rawurlencode('text') . '&contacts=' . rawurlencode($phone) . '&senderid=' . rawurlencode('8809601000100') . '&msg=' . rawurlencode($message);
+            $ch = curl_init('https://esms.mimsms.com/smsapi');
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $output = curl_exec($ch);
+            curl_close($ch);
+            return $output;
+        }
     }
 }
-/* sms sending required part end */
-if (!function_exists('get_record_list')) {
+if (!function_exists('email')) {
+    function email($data, $template = "common")
+    {
+        if (config_item('email_service') === "yes") {
+            $CI = &get_instance();
+            $CI->load->library('email');
+            $config['mailtype'] = 'html';
+            $config['charset'] = 'utf-8';
+            $config['priority'] = 1;
+            $config['protocol'] = 'sendmail';
+            $CI->email->initialize($config);
+            $CI->email->from($data['from'], $data['from_title']);
+            $CI->email->to($data['to']);
+            $CI->email->subject($data['subject']);
+            return $CI->load->view('email/' . $template, $data, true);
+            $CI->email->message($CI->load->view('email/' . $template, $data, true));
+            $CI->email->reply_to($data['from'], $data['from_title']);
+            return $CI->email->send();
+        } else return  true;
+    }
+}
+if (!function_exists('get_rows')) {
 
-    function get_record_list($table, $condition = null, $columns = '*', $order = null)
+    function get_rows($table, $condition = null, $columns = '*', $order = null, $order_type = "ASC")
     {
         $CI = &get_instance();
-        $CI->db->select($columns);
-        if ($order)
-            $CI->db->order_by($order);
-        if ($condition)
-            $CI->db->where($condition);
+        if ($columns) $CI->db->select($columns);
+        if ($condition)  $CI->db->where($condition);
+        if ($order) $CI->db->order_by($order, $order_type);
         return $CI->db->get($table)->result();
     }
 }
-if (!function_exists('get_single_record')) {
+if (!function_exists('get_row')) {
 
-    function get_single_record($table, $condition = null, $columns = '*', $order = null)
+    function get_row($table, $condition = null, $columns = '*')
     {
         $CI = &get_instance();
         $CI->db->select($columns);
-        if ($order)
-            $CI->db->order_by($order);
-        if ($condition)
+        if ($condition) {
             $CI->db->where($condition);
+        }
         return $CI->db->get($table)->row();
     }
 }
@@ -198,75 +170,35 @@ if (!function_exists('get_name')) {
 
     function get_name($table, $condition, $lang = null)
     {
-        $record = get_single_record($table, $condition);
-        return json_decode($record->name, true)[!empty($lang) ? $lang  : lang_option()];
-    }
-}
-if (!function_exists('get_shop_address')) {
-
-    function get_shop_address()
-    {
-        $address = config_item('addhouse_' . lang_option());
-        if (!empty(config_item('addstreet_' . lang_option()))) {
-            $address .= ', ' . config_item('addstreet_' . lang_option());
-        }
-        if (!empty(config_item('addzip_' . lang_option()))) {
-            $address .= ', ' . config_item('addzip_' . lang_option());
-        }
-        $address .= '<br/>' . config_item('addarea_' . lang_option()) . ' ,';
-        $address .= config_item('addcity_' . lang_option());
-        return $address;
+        $record = get_row($table, $condition);
+        return json_decode($record->name, true)[!empty($lang) ? $lang : lang_option()];
     }
 }
 if (!function_exists('is_active_page')) {
 
     function is_active_page($slug)
     {
-        $obj = get_single_record('pages', array('slug' => $slug));
-        if (!empty($obj)) {
-            return $obj->status === "active";
-        } else {
-            return true;
-        }
+        $obj = get_row('pages', array('slug' => $slug, 'status' => 'active'));
+        return !empty($obj) ? true : false;
     }
 }
 if (!function_exists('pagination')) {
 
-    function pagination($base_url, $total_rows, $per_page = 10)
+    function pagination($base_url, $total_rows, $per_page = 10, $first_url = "review")
     {
         $CI = &get_instance();
         $CI->load->library('pagination');
         $config['base_url'] = $base_url;
         $config['total_rows'] = $total_rows;
         $config['per_page'] = $per_page;
-        $config['full_tag_open'] = "<div class='w3-bar pagination w3-container'>";
+        $config['full_tag_open'] = "<div class='w3-bar pagination'>";
         $config['full_tag_close'] = "</div>";
-        $config['first_url'] = site_url('review');
-        $config['attributes'] = array('class' => 'w3-button w3-theme-dark w3-hover-theme w3-round', 'style' => 'margin:0 1px');
-        $config['cur_tag_open'] = "<a class='w3-button w3-theme w3-hover-theme w3-round'>";
+        $config['first_url'] = site_url($first_url);
+        $config['attributes'] = array('class' => 'w3-button w3-theme-d1 w3-hover-theme w3-round', 'style' => 'margin:0 1px');
+        $config['cur_tag_open'] = "<a class='w3-button w3-theme-l1 w3-hover-theme w3-round'>";
         $config['cur_tag_close'] = "</a>";
         $CI->pagination->initialize($config);
         return $CI->pagination->create_links();
-    }
-}
-if (!function_exists('orange_star')) {
-    function orange_star($star)
-    {
-        $stars = '';
-        for ($i = 1; $i <= $star; $i++) {
-            $stars .= "<i class='fa fa-star w3-text-orange'></i>";
-        }
-        return $stars;
-    }
-}
-if (!function_exists('gray_star')) {
-    function gray_star($star)
-    {
-        $stars = '';
-        for ($i = 1; $i <= $star; $i++) {
-            $stars .= "<i class='fa fa-star w3-text-gray'></i>";
-        }
-        return $stars;
     }
 }
 if (!function_exists('get_avg')) {
@@ -281,6 +213,7 @@ if (!function_exists('get_avg')) {
         return $CI->db->get()->row();
     }
 }
+
 if (!function_exists('get_sum')) {
     function get_sum($table, $field, $condition = null)
     {
@@ -298,11 +231,8 @@ if (!function_exists('get_avatar')) {
     {
         $CI = &get_instance();
         $photo = $CI->db->where('id', $id)->get($table)->row_array()[$field];
-        if (!empty($photo)) {
-            return checkfile("./uploads/" . $directory . "/",  $photo) ? UPLOAD_PATH . $directory . '/' . $photo : false;
-        } else {
-            return false;
-        }
+        if (!empty($photo)) return checkfile("./uploads/" . $directory . "/", $photo) ? UPLOAD_PATH . $directory . '/' . $photo : false;
+        else return false;
     }
 }
 if (!function_exists('get_themes')) {
@@ -332,8 +262,108 @@ if (!function_exists('get_themes')) {
         $themes['teal'] = 'teal';
         $themes['leaf'] = 'leaf';
         $themes['yellow'] = 'yellow';
+        $themes['white'] = 'white';
         return $themes;
     }
 }
+if (!function_exists('add_activity')) {
+    function add_activity($issue = null, $activity = null)
+    {
+        $CI = &get_instance();
+        $CI->load->model('Userlogs');
+        $CI->load->model('Useractivities');
+        $headers = getallheaders();
+        if (!empty($headers['log_id'])) {
+            $logger = $CI->Userlogs->get($headers['log_id']);
+            $CI->Useractivities->save(array('user_id' => $logger->user_id, 'hub_id' => $headers['hub_id'], 'device_id' => $logger->device_code, 'issue' => $issue, 'activity' => $activity));
+        }
+    }
+}
 
+if (!function_exists('objectToArray')) {
 
+    function objectToArray($d)
+    {
+        if (is_object($d)) $d = get_object_vars($d);
+        if (is_array($d)) return array_map(__FUNCTION__, $d);
+        else return $d;
+    }
+}
+if (!function_exists('unique_multidim_array')) {
+    function unique_multidim_array($array, $key)
+    {
+        $temp_array = array();
+        $i = 0;
+        $key_array = array();
+        foreach ($array as $val) {
+            if (!in_array($val[$key], $key_array)) {
+                $key_array[$i] = $val[$key];
+                $temp_array[$i] = $val;
+            }
+            $i++;
+        }
+        return $temp_array;
+    }
+}
+if (!function_exists('checkfile')) {
+    function checkfile($path = '', $file = '')
+    {
+        return file_exists($path . $file) ? true : false;
+    }
+}
+
+if (!function_exists('set_last_page')) {
+    function set_last_page($slug = '')
+    {
+        $CI = &get_instance();
+        $CI->session->set_userdata('lastAccessUrl', site_url($slug));
+    }
+}
+if (!function_exists('get_last_page')) {
+    function get_last_page()
+    {
+        $CI = &get_instance();
+        return $CI->session->userdata('lastAccessUrl');
+    }
+}
+if (!function_exists('set_page_slug')) {
+    function set_page_slug($slug = '')
+    {
+        $CI = &get_instance();
+        $CI->session->set_userdata('page_slug', $slug);
+    }
+}
+if (!function_exists('get_page_slug')) {
+    function get_page_slug()
+    {
+        $CI = &get_instance();
+        return $CI->session->userdata('page_slug');
+    }
+}
+
+if (!function_exists('order_status_css')) {
+    function order_status_css($key, $type = 'bg')
+    {
+        $text = ['pending' => 'w3-text-orange', 'confirmed' => 'w3-text-green', 'paid' => 'w3-text-green', 'rejected' => 'w3-text-red', 'canceled' => 'w3-text-red', 'unpaid' => 'w3-text-red'];
+        $bg = ['pending' => 'w3-orange', 'confirmed' => 'w3-green', 'paid' => 'w3-green', 'rejected' => 'w3-red', 'canceled' => 'w3-red', 'unpaid' => 'w3-red',];
+        return $type === 'bg' ? $bg[$key] : $text[$key];
+    }
+}
+
+if (!function_exists('debugPrint')) {
+    function debugPrint($object, $title = "", $isMarkup = false)
+    {
+        echo '<font color="red">Debug <<< START';
+        if (!empty($title)) {
+            echo "$title: ";
+        }
+        if (false == $isMarkup) {
+            echo "<pre>";
+            print_r($object);
+            echo "</pre>";
+        } else {
+            echo htmlspecialchars($object);
+        }
+        echo 'END >>></font>';
+    }
+}

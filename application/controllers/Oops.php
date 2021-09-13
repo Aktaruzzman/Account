@@ -1,6 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
-class Oops extends Layout
+class Oops extends Layout_Public
 {
     function __construct()
     {
@@ -9,7 +9,7 @@ class Oops extends Layout
     }
     public function index()
     {
-        $page = $this->db->where('slug', 'gallery')->get('pages')->row();
+        $page = $this->db->where('slug', 'home')->get('pages')->row();
         $lang = lang_option();
         $this->body_class = ["page-gallery"];
         $data['lang'] = $lang;
